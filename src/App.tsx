@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle, Tabs } from 'lucide-react';
+import { CheckCircle, Table as Tabs } from 'lucide-react';
 import TokenEditor from './components/TokenEditor';
 import FileUploader from './components/FileUploader';
 import ProjectUploader from './components/ProjectUploader';
