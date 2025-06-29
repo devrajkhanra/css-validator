@@ -77,7 +77,7 @@ const colorCombinations = [
         popularity: 5,
         colors: ['#fefce8', '#fef3c7', '#fde68a', '#facc15', '#eab308', '#ca8a04', '#a16207', '#854d0e'],
         usage: ['Highlights', 'Warnings', 'Optimism', 'Energy'],
-        accessibility: 'WCAG A (use carefully)',
+        accessibility: 'WCAG A',
         inspiration: 'Snapchat, McDonald\'s, DHL'
     },
     {
@@ -88,7 +88,7 @@ const colorCombinations = [
         popularity: 6,
         colors: ['#0a0a0a', '#1a1a2e', '#16213e', '#00d4ff', '#ff0080', '#39ff14', '#ff6600', '#ffffff'],
         usage: ['Gaming', 'Tech', 'Futuristic themes', 'Dark mode accents'],
-        accessibility: 'WCAG A (high contrast needed)',
+        accessibility: 'WCAG A',
         inspiration: 'Gaming interfaces, Cyberpunk aesthetics'
     },
     {
@@ -99,7 +99,7 @@ const colorCombinations = [
         popularity: 7,
         colors: ['#fef7ff', '#fce7f3', '#fbcfe8', '#f9a8d4', '#ec4899', '#db2777', '#be185d', '#9d174d'],
         usage: ['Feminine brands', 'Wellness', 'Children', 'Soft interfaces'],
-        accessibility: 'WCAG A (combine with darker text)',
+        accessibility: 'WCAG A',
         inspiration: 'Dribbble, Behance, Instagram'
     },
     {
