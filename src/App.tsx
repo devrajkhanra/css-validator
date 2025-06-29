@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle, Table as Tabs } from 'lucide-react';
+import { CheckCircle, Zap, Cpu, Layers, Sparkles } from 'lucide-react';
 import TokenEditor from './components/TokenEditor';
 import FileUploader from './components/FileUploader';
 import ProjectUploader from './components/ProjectUploader';
@@ -53,10 +53,8 @@ function App() {
         Object.entries(trendTokens).forEach(([key, values]) => {
             if (values && Array.isArray(values)) {
                 const tokenKey = key as keyof DesignTokens;
-                // Add new tokens while keeping existing ones
-                const existingTokens = updatedTokens[tokenKey] || [];
-                const newTokens = values.filter(token => !existingTokens.includes(token));
-                updatedTokens[tokenKey] = [...existingTokens, ...newTokens];
+                // Replace existing tokens with new ones for immediate effect
+                updatedTokens[tokenKey] = values;
             }
         });
         
@@ -74,7 +72,7 @@ function App() {
     const handleStyleSelect = (style: DesignStyle) => {
         setSelectedDesignStyle(style.id);
         
-        // Apply the style's design tokens
+        // Apply the style's design tokens immediately
         const styleTokens: Partial<DesignTokens> = {
             colors: style.colorSchemes.flatMap(scheme => scheme.colors),
             spacing: style.spacing,
@@ -87,9 +85,8 @@ function App() {
 
     const handleColorSelect = (colors: string[]) => {
         const updatedTokens = { ...tokens };
-        // Add new colors while keeping existing ones
-        const newColors = colors.filter(color => !updatedTokens.colors.includes(color));
-        updatedTokens.colors = [...updatedTokens.colors, ...newColors];
+        // Replace colors for immediate visual effect
+        updatedTokens.colors = colors;
         setTokens(updatedTokens);
         
         // Re-validate if there's existing content
@@ -99,41 +96,66 @@ function App() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/20">
-            {/* Background decoration */}
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+            {/* Animated Background Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-indigo-200/30 to-purple-200/30 rounded-full blur-3xl"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-200/30 to-cyan-200/30 rounded-full blur-3xl"></div>
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-400/20 to-pink-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-full blur-3xl animate-spin" style={{ animationDuration: '20s' }}></div>
+                
+                {/* Grid Pattern */}
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
             </div>
 
-            <div className="relative z-10 px-4 py-8 max-w-7xl mx-auto">
+            <div className="relative z-10 px-6 py-8 max-w-[1800px] mx-auto">
                 {/* Header */}
                 <header className="text-center mb-12">
-                    <div className="inline-flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg">
-                            <CheckCircle className="w-8 h-8 text-white" />
+                    <div className="inline-flex items-center gap-4 mb-6">
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-2xl blur-lg opacity-75"></div>
+                            <div className="relative p-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl">
+                                <Cpu className="w-10 h-10 text-white" />
+                            </div>
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 bg-clip-text text-transparent">
-                            Design Token Validator
-                        </h1>
+                        <div className="text-left">
+                            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                                Design Token AI
+                            </h1>
+                            <p className="text-xl text-gray-300 mt-2">
+                                WCAG Compliance • AI-Powered Design • Real-time Validation
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        WCAG compliance validation with AI-powered design inspiration from Dribbble & Behance
-                    </p>
+                    
+                    {/* Tech Stats */}
+                    <div className="flex justify-center gap-8 mb-8">
+                        <div className="text-center">
+                            <div className="text-2xl font-bold text-cyan-400">60+</div>
+                            <div className="text-sm text-gray-400">Color Palettes</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-2xl font-bold text-purple-400">20+</div>
+                            <div className="text-sm text-gray-400">Design Styles</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-2xl font-bold text-pink-400">AI</div>
+                            <div className="text-sm text-gray-400">Powered</div>
+                        </div>
+                    </div>
                 </header>
 
                 {/* Project Type Selector */}
                 <div className="flex justify-center mb-8">
-                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl p-2">
-                        <div className="flex gap-2 flex-wrap">
+                    <div className="bg-black/20 backdrop-blur-xl rounded-2xl border border-white/10 p-2">
+                        <div className="flex gap-2">
                             {(['app', 'dashboard', 'landing', 'portfolio', 'ecommerce'] as const).map(type => (
                                 <button
                                     key={type}
                                     onClick={() => setProjectType(type)}
-                                    className={`px-4 py-2 rounded-xl font-medium transition-all capitalize ${
+                                    className={`px-6 py-3 rounded-xl font-medium transition-all capitalize ${
                                         projectType === type
-                                            ? 'bg-indigo-600 text-white shadow-lg'
-                                            : 'text-gray-600 hover:bg-white/50'
+                                            ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-purple-500/25'
+                                            : 'text-gray-300 hover:bg-white/10 hover:text-white'
                                     }`}
                                 >
                                     {type}
@@ -144,37 +166,39 @@ function App() {
                 </div>
 
                 {/* Tab Navigation */}
-                <div className="flex justify-center mb-8">
-                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl p-2">
+                <div className="flex justify-center mb-12">
+                    <div className="bg-black/20 backdrop-blur-xl rounded-2xl border border-white/10 p-2">
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setActiveTab('single')}
-                                className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                                className={`flex items-center gap-3 px-8 py-4 rounded-xl font-medium transition-all ${
                                     activeTab === 'single'
-                                        ? 'bg-indigo-600 text-white shadow-lg'
-                                        : 'text-gray-600 hover:bg-white/50'
+                                        ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-purple-500/25'
+                                        : 'text-gray-300 hover:bg-white/10 hover:text-white'
                                 }`}
                             >
+                                <Zap className="w-5 h-5" />
                                 Single File Validation
                             </button>
                             <button
                                 onClick={() => setActiveTab('project')}
-                                className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                                className={`flex items-center gap-3 px-8 py-4 rounded-xl font-medium transition-all ${
                                     activeTab === 'project'
-                                        ? 'bg-indigo-600 text-white shadow-lg'
-                                        : 'text-gray-600 hover:bg-white/50'
+                                        ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-purple-500/25'
+                                        : 'text-gray-300 hover:bg-white/10 hover:text-white'
                                 }`}
                             >
+                                <Layers className="w-5 h-5" />
                                 Project Validation
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Main Content */}
-                <div className="grid lg:grid-cols-3 gap-8 mb-8">
+                {/* Main Content Grid */}
+                <div className="grid xl:grid-cols-4 gap-8">
                     {/* Left Column - Design System */}
-                    <div className="space-y-6">
+                    <div className="xl:col-span-1 space-y-6">
                         <DesignStyleSelector 
                             onStyleSelect={handleStyleSelect}
                             selectedStyleId={selectedDesignStyle}
@@ -191,7 +215,7 @@ function App() {
                     </div>
 
                     {/* Middle Column - Upload & Inspiration */}
-                    <div className="space-y-6">
+                    <div className="xl:col-span-1 space-y-6">
                         {activeTab === 'single' ? (
                             <FileUploader onUpload={runSingleFileValidation} />
                         ) : (
@@ -206,7 +230,7 @@ function App() {
                     </div>
 
                     {/* Right Column - Results */}
-                    <div className="space-y-6 h-full">
+                    <div className="xl:col-span-2">
                         {activeTab === 'single' ? (
                             <ReportViewer 
                                 violations={validationResult.violations} 
@@ -224,8 +248,15 @@ function App() {
                 </div>
 
                 {/* Footer */}
-                <footer className="text-center text-sm text-gray-500 mt-16">
-                    <p>Built with React, TypeScript & Tailwind CSS • WCAG AA Compliant • AI-Powered Design Inspiration</p>
+                <footer className="text-center mt-16 pt-8 border-t border-white/10">
+                    <div className="flex justify-center items-center gap-4 mb-4">
+                        <Sparkles className="w-5 h-5 text-cyan-400" />
+                        <span className="text-gray-300">Powered by AI • Built with React & TypeScript</span>
+                        <Sparkles className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <p className="text-sm text-gray-500">
+                        WCAG AAA Compliant • Real-time Validation • Modern Design Trends
+                    </p>
                 </footer>
             </div>
         </div>
