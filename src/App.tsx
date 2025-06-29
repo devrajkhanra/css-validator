@@ -5,10 +5,11 @@ import FileUploader from './components/FileUploader';
 import ProjectUploader from './components/ProjectUploader';
 import ReportViewer from './components/ReportViewer';
 import ProjectReportViewer from './components/ProjectReportViewer';
-import DesignStyleSelector, { type DesignStyle } from './components/DesignStyleSelector';
+import DesignStyleModal from './components/DesignStyleModal';
 import ColorGuidePanel from './components/ColorGuidePanel';
 import { defaultTokens } from './utils/defaultTokens';
 import type { DesignTokens, ProjectValidationResult } from './types/DesignToken';
+import type { DesignStyle } from './components/DesignStyleModal';
 import { validateCSS, type ValidationResult } from './utils/cssValidator';
 import { validateProject } from './utils/projectValidator';
 
@@ -18,6 +19,7 @@ function App() {
     const [projectResult, setProjectResult] = useState<ProjectValidationResult | undefined>();
     const [css, setCSS] = useState('');
     const [isTokenEditorOpen, setIsTokenEditorOpen] = useState(false);
+    const [isStyleModalOpen, setIsStyleModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'single' | 'project'>('single');
     const [selectedDesignStyle, setSelectedDesignStyle] = useState<string | undefined>();
     const [projectType, setProjectType] = useState<'dashboard' | 'landing' | 'app' | 'portfolio' | 'ecommerce'>('app');
@@ -128,7 +130,7 @@ function App() {
                             </div>
                             <div className="flex items-center gap-2 text-sm text-slate-600">
                                 <Palette className="w-4 h-4 text-purple-500" />
-                                <span>20+ Styles</span>
+                                <span>6 Styles</span>
                             </div>
                         </div>
                     </div>
@@ -193,12 +195,39 @@ function App() {
                 <div className="grid grid-cols-12 gap-6">
                     {/* Left Sidebar - Design System Controls */}
                     <div className="col-span-12 lg:col-span-3 space-y-6">
-                        <DesignStyleSelector 
-                            onStyleSelect={handleStyleSelect}
-                            selectedStyleId={selectedDesignStyle}
-                            onApplyToProject={handleApplyStyleToProject}
-                            hasUploadedProject={Object.keys(uploadedFiles).length > 0}
-                        />
+                        {/* Design Styles Button */}
+                        <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
+                            <div className="p-4">
+                                <button
+                                    onClick={() => setIsStyleModalOpen(true)}
+                                    className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg hover:from-blue-100 hover:to-purple-100 transition-all"
+                                >
+                                    <div className="p-2 bg-blue-100 rounded-lg">
+                                        <Palette className="w-5 h-5 text-blue-600" />
+                                    </div>
+                                    <div className="text-left">
+                                        <h3 className="font-semibold text-slate-900">Design Styles</h3>
+                                        <p className="text-sm text-slate-600">
+                                            {selectedDesignStyle ? 'Style selected' : 'Choose your design direction'}
+                                        </p>
+                                    </div>
+                                    {selectedDesignStyle && (
+                                        <CheckCircle className="w-5 h-5 text-green-600 ml-auto" />
+                                    )}
+                                </button>
+                                
+                                {/* Apply to Project Button */}
+                                {Object.keys(uploadedFiles).length > 0 && selectedDesignStyle && (
+                                    <button
+                                        onClick={handleApplyStyleToProject}
+                                        className="w-full mt-3 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Zap className="w-4 h-4" />
+                                        Apply Style to Uploaded Project
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                         
                         <ColorGuidePanel onColorSelect={handleColorSelect} />
                         
@@ -237,6 +266,17 @@ function App() {
                     </div>
                 </div>
             </main>
+
+            {/* Design Style Modal */}
+            <DesignStyleModal
+                isOpen={isStyleModalOpen}
+                onClose={() => setIsStyleModalOpen(false)}
+                onStyleSelect={handleStyleSelect}
+                selectedStyleId={selectedDesignStyle}
+                onApplyToProject={handleApplyStyleToProject}
+                hasUploadedProject={Object.keys(uploadedFiles).length > 0}
+                projectType={projectType}
+            />
 
             {/* Footer */}
             <footer className="bg-white border-t border-slate-200 mt-12">
