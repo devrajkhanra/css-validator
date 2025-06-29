@@ -1,13 +1,16 @@
 import postcss from 'postcss';
 import type { DesignTokens, FileAnalysis, ElementAnalysis, StyleProperty, ProjectViolation, ProjectValidationResult } from '../types/DesignToken';
+import { IntelligentTokenMatcher } from './intelligentTokenMatcher';
 
 // HTML/JSX parser for extracting elements and their styles
 class ProjectAnalyzer {
     private tokens: DesignTokens;
     private fileAnalyses: FileAnalysis[] = [];
+    private matcher: IntelligentTokenMatcher;
 
     constructor(tokens: DesignTokens) {
         this.tokens = tokens;
+        this.matcher = new IntelligentTokenMatcher(tokens);
     }
 
     // Parse HTML content to extract elements and their structure
@@ -194,143 +197,102 @@ class ProjectAnalyzer {
         }
     }
 
-    // Validate styles against design tokens
+    // Validate styles against design tokens with intelligent matching
     private validateStyle(style: StyleProperty, element: ElementAnalysis, fileAnalysis: FileAnalysis): ProjectViolation[] {
         const violations: ProjectViolation[] = [];
         const { property, value } = style;
 
-        // Color validation
-        if (property === 'color' || property === 'background-color' || property.includes('border-color')) {
-            if (!this.tokens.colors.includes(value)) {
-                const suggestedFix = this.findClosestToken(value, this.tokens.colors);
-                violations.push({
-                    filePath: fileAnalysis.filePath,
-                    elementPath: this.getElementPath(element),
-                    selector: element.selector,
-                    property,
-                    value,
-                    message: `Color '${value}' is not in the design system. Consider using '${suggestedFix}'.`,
-                    suggestedFix,
-                    context: this.buildContext(element, fileAnalysis),
-                    severity: 'error',
-                    wcagRule: 'WCAG 1.4.3 (Contrast)',
-                    line: style.line,
-                    column: style.column
-                });
-            }
+        // Skip CSS variables and complex values
+        if (value.startsWith('var(') || value.includes('calc(') || value.includes('url(')) {
+            return violations;
         }
 
-        // Spacing validation
-        if (this.isSpacingProperty(property)) {
-            const values = value.split(/\s+/);
-            const invalidValues = values.filter(v => !this.tokens.spacing.includes(v) && !this.isValidSpacingKeyword(v));
-            
-            if (invalidValues.length > 0) {
-                const suggestedFix = values.map(v => 
-                    invalidValues.includes(v) ? this.findClosestToken(v, this.tokens.spacing) : v
-                ).join(' ');
+        // Use intelligent token matching
+        const matchResult = this.matcher.findBestMatch(property, value);
+        
+        // Only create violation if confidence is reasonable and values are different
+        if (matchResult.confidence > 0.3 && matchResult.suggestedValue !== value) {
+            let message = `Value '${value}' could be improved. ${matchResult.reasoning}`;
+            let severity: ProjectViolation['severity'] = 'error';
+            let wcagRule = '';
+
+            // Determine severity and WCAG rules based on property and confidence
+            if (matchResult.confidence > 0.8) {
+                severity = 'error';
+            } else if (matchResult.confidence > 0.5) {
+                severity = 'warning';
+            } else {
+                severity = 'info';
+            }
+
+            // Add specific WCAG warnings and rules
+            if (property === 'font-size') {
+                const inputPx = this.normalizeValueToPx(value);
+                const isBodyText = element.tagName === 'p' || element.tagName === 'div' || element.tagName === 'span';
                 
-                violations.push({
-                    filePath: fileAnalysis.filePath,
-                    elementPath: this.getElementPath(element),
-                    selector: element.selector,
-                    property,
-                    value,
-                    message: `Spacing values not in design system: ${invalidValues.join(', ')}`,
-                    suggestedFix,
-                    context: this.buildContext(element, fileAnalysis),
-                    severity: 'error',
-                    wcagRule: 'WCAG 1.4.10 (Reflow)',
-                    line: style.line,
-                    column: style.column
-                });
+                if (isBodyText && inputPx < 16) {
+                    message += ' ⚠️ WCAG recommends minimum 16px for body text.';
+                    severity = 'warning';
+                    wcagRule = 'WCAG 1.4.4 (Resize Text)';
+                }
             }
-        }
-
-        // Font size validation (WCAG minimum 16px for body text)
-        if (property === 'font-size') {
-            const numericValue = parseFloat(value);
-            const isBodyText = element.tagName === 'p' || element.tagName === 'div' || element.tagName === 'span';
             
-            if (!this.tokens.fontSizes.includes(value)) {
-                const suggestedFix = this.findClosestToken(value, this.tokens.fontSizes);
-                violations.push({
-                    filePath: fileAnalysis.filePath,
-                    elementPath: this.getElementPath(element),
-                    selector: element.selector,
-                    property,
-                    value,
-                    message: `Font size '${value}' not in typography scale. Consider using '${suggestedFix}'.`,
-                    suggestedFix,
-                    context: this.buildContext(element, fileAnalysis),
-                    severity: 'error',
-                    wcagRule: 'WCAG 1.4.4 (Resize Text)',
-                    line: style.line,
-                    column: style.column
-                });
+            if (property === 'line-height') {
+                const inputValue = parseFloat(value);
+                const isBodyText = element.tagName === 'p' || element.tagName === 'div';
+                
+                if (isBodyText && inputValue < 1.5) {
+                    message += ' ⚠️ WCAG recommends minimum 1.5 line-height for body text.';
+                    severity = 'warning';
+                    wcagRule = 'WCAG 1.4.8 (Visual Presentation)';
+                }
             }
 
-            // Check WCAG minimum font size for body text
-            if (isBodyText && numericValue < 16 && value.includes('px')) {
-                violations.push({
-                    filePath: fileAnalysis.filePath,
-                    elementPath: this.getElementPath(element),
-                    selector: element.selector,
-                    property,
-                    value,
-                    message: `Font size ${value} is below WCAG recommended minimum of 16px for body text.`,
-                    suggestedFix: '16px',
-                    context: this.buildContext(element, fileAnalysis),
-                    severity: 'warning',
-                    wcagRule: 'WCAG 1.4.4 (Resize Text)',
-                    line: style.line,
-                    column: style.column
-                });
-            }
-        }
-
-        // Line height validation (WCAG recommends 1.5 for body text)
-        if (property === 'line-height') {
-            const numericValue = parseFloat(value);
-            const isBodyText = element.tagName === 'p' || element.tagName === 'div';
-            
-            if (!this.tokens.lineHeights.includes(value)) {
-                const suggestedFix = this.findClosestToken(value, this.tokens.lineHeights);
-                violations.push({
-                    filePath: fileAnalysis.filePath,
-                    elementPath: this.getElementPath(element),
-                    selector: element.selector,
-                    property,
-                    value,
-                    message: `Line height '${value}' not in design system.`,
-                    suggestedFix,
-                    context: this.buildContext(element, fileAnalysis),
-                    severity: 'error',
-                    wcagRule: 'WCAG 1.4.8 (Visual Presentation)',
-                    line: style.line,
-                    column: style.column
-                });
+            if (property === 'color' || property === 'background-color') {
+                wcagRule = 'WCAG 1.4.3 (Contrast)';
             }
 
-            if (isBodyText && numericValue < 1.5) {
-                violations.push({
-                    filePath: fileAnalysis.filePath,
-                    elementPath: this.getElementPath(element),
-                    selector: element.selector,
-                    property,
-                    value,
-                    message: `Line height ${value} is below WCAG recommended minimum of 1.5 for body text.`,
-                    suggestedFix: '1.5',
-                    context: this.buildContext(element, fileAnalysis),
-                    severity: 'warning',
-                    wcagRule: 'WCAG 1.4.8 (Visual Presentation)',
-                    line: style.line,
-                    column: style.column
-                });
+            if (this.isSpacingProperty(property)) {
+                wcagRule = 'WCAG 1.4.10 (Reflow)';
             }
+
+            violations.push({
+                filePath: fileAnalysis.filePath,
+                elementPath: this.getElementPath(element),
+                selector: element.selector,
+                property,
+                value,
+                message,
+                suggestedFix: matchResult.suggestedValue,
+                context: this.buildContext(element, fileAnalysis),
+                severity,
+                wcagRule,
+                line: style.line,
+                column: style.column
+            });
         }
 
         return violations;
+    }
+
+    // Convert value to px for comparison
+    private normalizeValueToPx(value: string): number {
+        const match = value.match(/^(-?\d*\.?\d+)(.*)$/);
+        if (!match) return 0;
+        
+        const number = parseFloat(match[1]);
+        const unit = match[2].trim() || 'px';
+        
+        switch (unit) {
+            case 'rem':
+                return number * 16;
+            case 'em':
+                return number * 16; // Approximate
+            case 'px':
+                return number;
+            default:
+                return number;
+        }
     }
 
     // Check if property is spacing-related
@@ -338,28 +300,8 @@ class ProjectAnalyzer {
         return property.includes('margin') || property.includes('padding') || 
                property === 'gap' || property.includes('top') || 
                property.includes('right') || property.includes('bottom') || 
-               property.includes('left');
-    }
-
-    // Check if value is a valid spacing keyword
-    private isValidSpacingKeyword(value: string): boolean {
-        return ['auto', 'inherit', 'initial', 'unset', 'revert'].includes(value);
-    }
-
-    // Find closest matching token
-    private findClosestToken(value: string, tokens: string[]): string {
-        const numericValue = parseFloat(value);
-        if (!isNaN(numericValue)) {
-            const numericTokens = tokens
-                .map(token => ({ token, value: parseFloat(token) }))
-                .filter(t => !isNaN(t.value))
-                .sort((a, b) => Math.abs(a.value - numericValue) - Math.abs(b.value - numericValue));
-            
-            if (numericTokens.length > 0) {
-                return numericTokens[0].token;
-            }
-        }
-        return tokens[0] || value;
+               property.includes('left') || property === 'width' || 
+               property === 'height';
     }
 
     // Get element path for better identification
@@ -368,8 +310,7 @@ class ProjectAnalyzer {
         let current = element;
         while (current.parent) {
             parts.unshift(current.parent);
-            // Find parent element (simplified)
-            break;
+            break; // Simplified for now
         }
         return parts.join(' > ');
     }

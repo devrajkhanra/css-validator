@@ -1,5 +1,6 @@
 import postcss from 'postcss';
 import type { DesignTokens } from '../types/DesignToken';
+import { IntelligentTokenMatcher } from './intelligentTokenMatcher';
 
 export type Violation = {
     selector: string;
@@ -7,6 +8,9 @@ export type Violation = {
     value: string;
     message: string;
     suggestedFix?: string;
+    confidence?: number;
+    reasoning?: string;
+    modernUnit?: string;
     line?: number;
     column?: number;
 };
@@ -19,9 +23,7 @@ export type ValidationResult = {
 // Color contrast checker for WCAG compliance
 function getContrastRatio(color1: string, color2: string): number {
     // Simplified contrast ratio calculation
-    // In a real implementation, you'd want a more robust color parsing library
     const getLuminance = (color: string): number => {
-        // Basic luminance calculation for hex colors
         if (color.startsWith('#')) {
             const hex = color.slice(1);
             const r = parseInt(hex.substr(0, 2), 16) / 255;
@@ -45,27 +47,10 @@ function getContrastRatio(color1: string, color2: string): number {
     return (lighter + 0.05) / (darker + 0.05);
 }
 
-function findClosestToken(value: string, tokens: string[]): string {
-    // Simple string matching - in production, you'd want more sophisticated matching
-    const numericValue = parseFloat(value);
-    if (!isNaN(numericValue)) {
-        const numericTokens = tokens
-            .map(token => ({ token, value: parseFloat(token) }))
-            .filter(t => !isNaN(t.value))
-            .sort((a, b) => Math.abs(a.value - numericValue) - Math.abs(b.value - numericValue));
-        
-        if (numericTokens.length > 0) {
-            return numericTokens[0].token;
-        }
-    }
-    
-    // Fallback to first token of the same type
-    return tokens[0] || value;
-}
-
 export async function validateCSS(css: string, tokens: DesignTokens): Promise<ValidationResult> {
     const violations: Violation[] = [];
     let fixedCSS = css;
+    const matcher = new IntelligentTokenMatcher(tokens);
 
     try {
         const result = await postcss().process(css, { from: undefined });
@@ -85,137 +70,55 @@ export async function validateCSS(css: string, tokens: DesignTokens): Promise<Va
                 }
             });
 
-            // Second pass: validate properties
+            // Second pass: validate properties with intelligent matching
             rule.walkDecls((decl) => {
                 const val = decl.value.trim();
                 const prop = decl.prop;
 
-                // Color validation
-                if (prop === 'color' || prop === 'background-color' || prop.includes('border-color')) {
-                    if (!tokens.colors.includes(val)) {
-                        const suggestedFix = findClosestToken(val, tokens.colors);
-                        violations.push({
-                            selector: rule.selector,
-                            property: prop,
-                            value: val,
-                            message: `Color '${val}' is not in the design system. Consider using '${suggestedFix}'.`,
-                            suggestedFix,
-                            line: decl.source?.start?.line,
-                            column: decl.source?.start?.column
-                        });
-                        fixes.push({ original: `${prop}: ${val}`, fixed: `${prop}: ${suggestedFix}` });
-                    }
+                // Skip CSS variables and complex values
+                if (val.startsWith('var(') || val.includes('calc(') || val.includes('url(')) {
+                    return;
                 }
 
-                // Spacing validation (margin, padding, gap, etc.)
-                if (prop.includes('margin') || prop.includes('padding') || prop === 'gap' || 
-                    prop.includes('top') || prop.includes('right') || prop.includes('bottom') || prop.includes('left')) {
-                    // Handle multiple values (e.g., "10px 20px")
-                    const values = val.split(/\s+/);
-                    const invalidValues = values.filter(v => !tokens.spacing.includes(v) && v !== 'auto' && v !== 'inherit');
+                // Use intelligent token matching
+                const matchResult = matcher.findBestMatch(prop, val);
+                
+                // Only create violation if confidence is reasonable and values are different
+                if (matchResult.confidence > 0.3 && matchResult.suggestedValue !== val) {
+                    let message = `Value '${val}' could be improved. ${matchResult.reasoning}`;
                     
-                    if (invalidValues.length > 0) {
-                        const suggestedValues = invalidValues.map(v => findClosestToken(v, tokens.spacing));
-                        const suggestedFix = val.split(/\s+/).map(v => 
-                            invalidValues.includes(v) ? findClosestToken(v, tokens.spacing) : v
-                        ).join(' ');
-                        
-                        violations.push({
-                            selector: rule.selector,
-                            property: prop,
-                            value: val,
-                            message: `Spacing value contains non-standard values: ${invalidValues.join(', ')}. Consider using: ${suggestedValues.join(', ')}.`,
-                            suggestedFix,
-                            line: decl.source?.start?.line,
-                            column: decl.source?.start?.column
-                        });
-                        fixes.push({ original: `${prop}: ${val}`, fixed: `${prop}: ${suggestedFix}` });
+                    // Add specific WCAG warnings
+                    if (prop === 'font-size') {
+                        const inputPx = parseFloat(val);
+                        if (inputPx < 16 && val.includes('px')) {
+                            message += ' ⚠️ WCAG recommends minimum 16px for body text.';
+                        }
                     }
-                }
+                    
+                    if (prop === 'line-height') {
+                        const inputValue = parseFloat(val);
+                        if (inputValue < 1.5) {
+                            message += ' ⚠️ WCAG recommends minimum 1.5 line-height for body text.';
+                        }
+                    }
 
-                // Font size validation
-                if (prop === 'font-size') {
-                    if (!tokens.fontSizes.includes(val)) {
-                        const suggestedFix = findClosestToken(val, tokens.fontSizes);
-                        violations.push({
-                            selector: rule.selector,
-                            property: prop,
-                            value: val,
-                            message: `Font size '${val}' is not in the typography scale. Consider using '${suggestedFix}'.`,
-                            suggestedFix,
-                            line: decl.source?.start?.line,
-                            column: decl.source?.start?.column
-                        });
-                        fixes.push({ original: `${prop}: ${val}`, fixed: `${prop}: ${suggestedFix}` });
-                    }
-                }
+                    violations.push({
+                        selector: rule.selector,
+                        property: prop,
+                        value: val,
+                        message,
+                        suggestedFix: matchResult.suggestedValue,
+                        confidence: matchResult.confidence,
+                        reasoning: matchResult.reasoning,
+                        modernUnit: matchResult.modernUnit,
+                        line: decl.source?.start?.line,
+                        column: decl.source?.start?.column
+                    });
 
-                // Line height validation
-                if (prop === 'line-height') {
-                    if (!tokens.lineHeights.includes(val)) {
-                        const suggestedFix = findClosestToken(val, tokens.lineHeights);
-                        violations.push({
-                            selector: rule.selector,
-                            property: prop,
-                            value: val,
-                            message: `Line height '${val}' is not in the design system. Consider using '${suggestedFix}'.`,
-                            suggestedFix,
-                            line: decl.source?.start?.line,
-                            column: decl.source?.start?.column
-                        });
-                        fixes.push({ original: `${prop}: ${val}`, fixed: `${prop}: ${suggestedFix}` });
-                    }
-                }
-
-                // Font weight validation
-                if (prop === 'font-weight') {
-                    if (!tokens.fontWeights.includes(val)) {
-                        const suggestedFix = findClosestToken(val, tokens.fontWeights);
-                        violations.push({
-                            selector: rule.selector,
-                            property: prop,
-                            value: val,
-                            message: `Font weight '${val}' is not in the design system. Consider using '${suggestedFix}'.`,
-                            suggestedFix,
-                            line: decl.source?.start?.line,
-                            column: decl.source?.start?.column
-                        });
-                        fixes.push({ original: `${prop}: ${val}`, fixed: `${prop}: ${suggestedFix}` });
-                    }
-                }
-
-                // Border radius validation
-                if (prop.includes('border-radius')) {
-                    if (!tokens.borderRadius.includes(val)) {
-                        const suggestedFix = findClosestToken(val, tokens.borderRadius);
-                        violations.push({
-                            selector: rule.selector,
-                            property: prop,
-                            value: val,
-                            message: `Border radius '${val}' is not in the design system. Consider using '${suggestedFix}'.`,
-                            suggestedFix,
-                            line: decl.source?.start?.line,
-                            column: decl.source?.start?.column
-                        });
-                        fixes.push({ original: `${prop}: ${val}`, fixed: `${prop}: ${suggestedFix}` });
-                    }
-                }
-
-                // Box shadow validation
-                if (prop === 'box-shadow') {
-                    if (!tokens.boxShadow.includes(val)) {
-                        const suggestedFix = findClosestToken(val, tokens.boxShadow);
-                        violations.push({
-                            selector: rule.selector,
-                            property: prop,
-                            value: val,
-                            message: `Box shadow '${val}' is not in the design system. Consider using '${suggestedFix}'.`,
-                            suggestedFix,
-                            line: decl.source?.start?.line,
-                            column: decl.source?.start?.column
-                        });
-                        fixes.push({ original: `${prop}: ${val}`, fixed: `${prop}: ${suggestedFix}` });
-                    }
+                    fixes.push({ 
+                        original: `${prop}: ${val}`, 
+                        fixed: `${prop}: ${matchResult.suggestedValue}` 
+                    });
                 }
             });
 

@@ -26,49 +26,32 @@ export const defaultTokens = {
         '#e0f2f1', '#b2dfdb', '#80cbc4', '#4db6ac', '#26a69a', '#009688', '#00897b', '#00796b', '#00695c', '#004d40'
     ],
     
-    // Comprehensive spacing scale following 8px grid system
+    // Comprehensive spacing scale following 8px grid system (in px for base reference)
     spacing: [
-        '0', '1px', '2px', '4px', '6px', '8px', '10px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px',
-        '36px', '40px', '44px', '48px', '56px', '64px', '72px', '80px', '96px', '112px', '128px', '144px', '160px', '176px', '192px',
-        '208px', '224px', '240px', '256px', '288px', '320px', '384px',
-        // Relative units
-        '0.25rem', '0.5rem', '0.75rem', '1rem', '1.25rem', '1.5rem', '1.75rem', '2rem', '2.25rem', '2.5rem', '3rem', '3.5rem', '4rem',
-        '5rem', '6rem', '7rem', '8rem', '9rem', '10rem', '11rem', '12rem', '13rem', '14rem', '15rem', '16rem', '18rem', '20rem', '24rem',
-        // Percentages
-        '25%', '33.333333%', '50%', '66.666667%', '75%', '100%',
-        // Viewport units
-        '25vh', '50vh', '75vh', '100vh', '25vw', '50vw', '75vw', '100vw'
+        '0', '2px', '4px', '6px', '8px', '10px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px',
+        '36px', '40px', '44px', '48px', '56px', '64px', '72px', '80px', '96px', '112px', '128px', '144px', '160px', 
+        '176px', '192px', '208px', '224px', '240px', '256px', '288px', '320px', '384px', '448px', '512px'
     ],
     
-    // WCAG compliant font sizes (minimum 16px for body text)
+    // WCAG compliant font sizes (minimum 16px for body text) - in px for base reference
     fontSizes: [
-        '10px', '11px', '12px', '13px', '14px', '16px', '18px', '20px', '22px', '24px', '28px', '32px', '36px', '40px', '44px', '48px',
-        '56px', '64px', '72px', '80px', '96px',
-        // Relative units
-        '0.625rem', '0.6875rem', '0.75rem', '0.8125rem', '0.875rem', '1rem', '1.125rem', '1.25rem', '1.375rem', '1.5rem',
-        '1.75rem', '2rem', '2.25rem', '2.5rem', '2.75rem', '3rem', '3.5rem', '4rem', '4.5rem', '5rem', '6rem',
-        // Relative keywords
-        'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large', 'xxx-large',
-        'smaller', 'larger'
+        '12px', '14px', '16px', '18px', '20px', '22px', '24px', '28px', '32px', '36px', '40px', '44px', '48px',
+        '56px', '64px', '72px', '80px', '96px'
     ],
     
-    // Line heights for accessibility
+    // Line heights for accessibility (unitless preferred)
     lineHeights: [
-        '1', '1.1', '1.2', '1.25', '1.3', '1.4', '1.5', '1.6', '1.75', '2', '2.25', '2.5',
-        'normal', 'none'
+        '1', '1.1', '1.2', '1.25', '1.3', '1.4', '1.5', '1.6', '1.75', '2', '2.25', '2.5'
     ],
     
     // Font weights
     fontWeights: [
-        '100', '200', '300', '400', '500', '600', '700', '800', '900',
-        'thin', 'extralight', 'light', 'normal', 'medium', 'semibold', 'bold', 'extrabold', 'black'
+        '100', '200', '300', '400', '500', '600', '700', '800', '900'
     ],
     
-    // Border radius values
+    // Border radius values (in px for base reference)
     borderRadius: [
-        '0', '1px', '2px', '3px', '4px', '6px', '8px', '12px', '16px', '20px', '24px', '28px', '32px',
-        '0.125rem', '0.25rem', '0.375rem', '0.5rem', '0.75rem', '1rem', '1.25rem', '1.5rem', '1.75rem', '2rem',
-        '50%', '9999px', 'full'
+        '0', '2px', '4px', '6px', '8px', '12px', '16px', '20px', '24px', '32px', '9999px'
     ],
     
     // Shadow values for depth
