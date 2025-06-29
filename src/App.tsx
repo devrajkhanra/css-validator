@@ -5,6 +5,7 @@ import FileUploader from './components/FileUploader';
 import ProjectUploader from './components/ProjectUploader';
 import ReportViewer from './components/ReportViewer';
 import ProjectReportViewer from './components/ProjectReportViewer';
+import DesignInspirationPanel from './components/DesignInspirationPanel';
 import { defaultTokens } from './utils/defaultTokens';
 import type { DesignTokens, ProjectValidationResult } from './types/DesignToken';
 import { validateCSS, type ValidationResult } from './utils/cssValidator';
@@ -42,6 +43,31 @@ function App() {
         }
     };
 
+    const handleApplyTrend = (trendTokens: Partial<DesignTokens>) => {
+        const updatedTokens = { ...tokens };
+        
+        // Merge trend tokens with existing tokens
+        Object.entries(trendTokens).forEach(([key, values]) => {
+            if (values && Array.isArray(values)) {
+                const tokenKey = key as keyof DesignTokens;
+                // Add new tokens while keeping existing ones
+                const existingTokens = updatedTokens[tokenKey] || [];
+                const newTokens = values.filter(token => !existingTokens.includes(token));
+                updatedTokens[tokenKey] = [...existingTokens, ...newTokens];
+            }
+        });
+        
+        setTokens(updatedTokens);
+        
+        // Re-validate if there's existing content
+        if (css) {
+            runSingleFileValidation(css);
+        }
+        if (projectResult) {
+            // Re-validate project if needed
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/20">
             {/* Background decoration */}
@@ -62,7 +88,7 @@ function App() {
                         </h1>
                     </div>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Comprehensive WCAG compliance validation for single files or entire projects with intelligent analysis from parent to child elements
+                        WCAG compliance validation with AI-powered design inspiration from Dribbble & Behance
                     </p>
                 </header>
 
@@ -95,7 +121,7 @@ function App() {
                 </div>
 
                 {/* Main Content */}
-                <div className="grid lg:grid-cols-2 gap-8 mb-8">
+                <div className="grid lg:grid-cols-3 gap-8 mb-8">
                     {/* Left Column */}
                     <div className="space-y-6">
                         <TokenEditor
@@ -110,10 +136,17 @@ function App() {
                         ) : (
                             <ProjectUploader onUpload={runProjectValidation} />
                         )}
+
+                        {/* Design Inspiration Panel */}
+                        <DesignInspirationPanel 
+                            tokens={tokens}
+                            onApplyTrend={handleApplyTrend}
+                            projectType="app"
+                        />
                     </div>
 
                     {/* Right Column */}
-                    <div className="space-y-6 h-full">
+                    <div className="lg:col-span-2 space-y-6 h-full">
                         {activeTab === 'single' ? (
                             <ReportViewer 
                                 violations={validationResult.violations} 
@@ -132,7 +165,7 @@ function App() {
 
                 {/* Footer */}
                 <footer className="text-center text-sm text-gray-500 mt-16">
-                    <p>Built with React, TypeScript & Tailwind CSS • WCAG AA Compliant • Project-Wide Analysis</p>
+                    <p>Built with React, TypeScript & Tailwind CSS • WCAG AA Compliant • AI-Powered Design Inspiration</p>
                 </footer>
             </div>
         </div>
