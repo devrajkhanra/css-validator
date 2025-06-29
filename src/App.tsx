@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle, Zap, Cpu, Layers, Sparkles } from 'lucide-react';
+import { CheckCircle, Zap, Cpu, Layers, Sparkles, BarChart3, Settings, Users, Activity } from 'lucide-react';
 import TokenEditor from './components/TokenEditor';
 import FileUploader from './components/FileUploader';
 import ProjectUploader from './components/ProjectUploader';
@@ -65,7 +65,14 @@ function App() {
             runSingleFileValidation(css);
         }
         if (projectResult) {
-            // Re-validate project if needed
+            // Re-validate project with new tokens
+            const files = Object.keys(projectResult.fixedFiles).reduce((acc, filePath) => {
+                acc[filePath] = projectResult.fixedFiles[filePath];
+                return acc;
+            }, {} as { [filePath: string]: string });
+            if (Object.keys(files).length > 0) {
+                runProjectValidation(files);
+            }
         }
     };
 
@@ -93,6 +100,16 @@ function App() {
         if (css) {
             runSingleFileValidation(css);
         }
+        if (projectResult) {
+            // Re-validate project with new colors
+            const files = Object.keys(projectResult.fixedFiles).reduce((acc, filePath) => {
+                acc[filePath] = projectResult.fixedFiles[filePath];
+                return acc;
+            }, {} as { [filePath: string]: string });
+            if (Object.keys(files).length > 0) {
+                runProjectValidation(files);
+            }
+        }
     };
 
     return (
@@ -107,156 +124,171 @@ function App() {
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
             </div>
 
-            <div className="relative z-10 px-6 py-8 max-w-[1800px] mx-auto">
-                {/* Header */}
-                <header className="text-center mb-12">
-                    <div className="inline-flex items-center gap-4 mb-6">
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-2xl blur-lg opacity-75"></div>
-                            <div className="relative p-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl">
-                                <Cpu className="w-10 h-10 text-white" />
+            <div className="relative z-10">
+                {/* Dashboard Header */}
+                <header className="border-b border-white/10 bg-black/20 backdrop-blur-xl">
+                    <div className="max-w-[1800px] mx-auto px-6 py-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-xl blur-lg opacity-75"></div>
+                                    <div className="relative p-3 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-xl">
+                                        <Cpu className="w-8 h-8 text-white" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                                        Design Token AI Dashboard
+                                    </h1>
+                                    <p className="text-sm text-gray-400">
+                                        WCAG Compliance • AI-Powered Design • Real-time Validation
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                        <div className="text-left">
-                            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                                Design Token AI
-                            </h1>
-                            <p className="text-xl text-gray-300 mt-2">
-                                WCAG Compliance • AI-Powered Design • Real-time Validation
-                            </p>
-                        </div>
-                    </div>
-                    
-                    {/* Tech Stats */}
-                    <div className="flex justify-center gap-8 mb-8">
-                        <div className="text-center">
-                            <div className="text-2xl font-bold text-cyan-400">60+</div>
-                            <div className="text-sm text-gray-400">Color Palettes</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-2xl font-bold text-purple-400">20+</div>
-                            <div className="text-sm text-gray-400">Design Styles</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-2xl font-bold text-pink-400">AI</div>
-                            <div className="text-sm text-gray-400">Powered</div>
+                            
+                            {/* Dashboard Stats */}
+                            <div className="flex items-center gap-6">
+                                <div className="flex items-center gap-2 text-sm">
+                                    <Activity className="w-4 h-4 text-green-400" />
+                                    <span className="text-gray-300">Live</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                    <Users className="w-4 h-4 text-cyan-400" />
+                                    <span className="text-gray-300">60+ Palettes</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                    <BarChart3 className="w-4 h-4 text-purple-400" />
+                                    <span className="text-gray-300">20+ Styles</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </header>
 
-                {/* Project Type Selector */}
-                <div className="flex justify-center mb-8">
-                    <div className="bg-black/20 backdrop-blur-xl rounded-2xl border border-white/10 p-2">
-                        <div className="flex gap-2">
-                            {(['app', 'dashboard', 'landing', 'portfolio', 'ecommerce'] as const).map(type => (
+                {/* Dashboard Navigation */}
+                <nav className="border-b border-white/10 bg-black/10 backdrop-blur-xl">
+                    <div className="max-w-[1800px] mx-auto px-6 py-4">
+                        <div className="flex items-center justify-between">
+                            {/* Project Type Selector */}
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm text-gray-400">Project Type:</span>
+                                <div className="flex gap-2">
+                                    {(['app', 'dashboard', 'landing', 'portfolio', 'ecommerce'] as const).map(type => (
+                                        <button
+                                            key={type}
+                                            onClick={() => setProjectType(type)}
+                                            className={`px-4 py-2 rounded-lg font-medium transition-all capitalize text-sm ${
+                                                projectType === type
+                                                    ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-purple-500/25'
+                                                    : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                                            }`}
+                                        >
+                                            {type}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Validation Mode Tabs */}
+                            <div className="flex gap-2">
                                 <button
-                                    key={type}
-                                    onClick={() => setProjectType(type)}
-                                    className={`px-6 py-3 rounded-xl font-medium transition-all capitalize ${
-                                        projectType === type
+                                    onClick={() => setActiveTab('single')}
+                                    className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-all text-sm ${
+                                        activeTab === 'single'
                                             ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-purple-500/25'
                                             : 'text-gray-300 hover:bg-white/10 hover:text-white'
                                     }`}
                                 >
-                                    {type}
+                                    <Zap className="w-4 h-4" />
+                                    Single File
                                 </button>
-                            ))}
+                                <button
+                                    onClick={() => setActiveTab('project')}
+                                    className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-all text-sm ${
+                                        activeTab === 'project'
+                                            ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-purple-500/25'
+                                            : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                                    }`}
+                                >
+                                    <Layers className="w-4 h-4" />
+                                    Full Project
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </nav>
 
-                {/* Tab Navigation */}
-                <div className="flex justify-center mb-12">
-                    <div className="bg-black/20 backdrop-blur-xl rounded-2xl border border-white/10 p-2">
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => setActiveTab('single')}
-                                className={`flex items-center gap-3 px-8 py-4 rounded-xl font-medium transition-all ${
-                                    activeTab === 'single'
-                                        ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-purple-500/25'
-                                        : 'text-gray-300 hover:bg-white/10 hover:text-white'
-                                }`}
-                            >
-                                <Zap className="w-5 h-5" />
-                                Single File Validation
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('project')}
-                                className={`flex items-center gap-3 px-8 py-4 rounded-xl font-medium transition-all ${
-                                    activeTab === 'project'
-                                        ? 'bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-purple-500/25'
-                                        : 'text-gray-300 hover:bg-white/10 hover:text-white'
-                                }`}
-                            >
-                                <Layers className="w-5 h-5" />
-                                Project Validation
-                            </button>
+                {/* Dashboard Main Content */}
+                <main className="max-w-[1800px] mx-auto px-6 py-8">
+                    <div className="grid grid-cols-12 gap-6">
+                        {/* Left Sidebar - Design System Controls */}
+                        <div className="col-span-12 lg:col-span-3 space-y-6">
+                            <DesignStyleSelector 
+                                onStyleSelect={handleStyleSelect}
+                                selectedStyleId={selectedDesignStyle}
+                            />
+                            
+                            <ColorGuidePanel onColorSelect={handleColorSelect} />
+                            
+                            <TokenEditor
+                                tokens={tokens}
+                                onChange={setTokens}
+                                isOpen={isTokenEditorOpen}
+                                onToggle={() => setIsTokenEditorOpen(!isTokenEditorOpen)}
+                            />
+                        </div>
+
+                        {/* Center Content - Upload & AI Inspiration */}
+                        <div className="col-span-12 lg:col-span-4 space-y-6">
+                            {activeTab === 'single' ? (
+                                <FileUploader onUpload={runSingleFileValidation} />
+                            ) : (
+                                <ProjectUploader onUpload={runProjectValidation} />
+                            )}
+
+                            <DesignInspirationPanel 
+                                tokens={tokens}
+                                onApplyTrend={handleApplyTrend}
+                                projectType={projectType}
+                            />
+                        </div>
+
+                        {/* Right Content - Validation Results */}
+                        <div className="col-span-12 lg:col-span-5">
+                            {activeTab === 'single' ? (
+                                <ReportViewer 
+                                    violations={validationResult.violations} 
+                                    css={css}
+                                    fixedCSS={validationResult.fixedCSS}
+                                    onFixErrors={handleFixSingleFileErrors}
+                                />
+                            ) : (
+                                <ProjectReportViewer 
+                                    result={projectResult}
+                                    onFixErrors={handleFixProjectErrors}
+                                />
+                            )}
                         </div>
                     </div>
-                </div>
+                </main>
 
-                {/* Main Content Grid */}
-                <div className="grid xl:grid-cols-4 gap-8">
-                    {/* Left Column - Design System */}
-                    <div className="xl:col-span-1 space-y-6">
-                        <DesignStyleSelector 
-                            onStyleSelect={handleStyleSelect}
-                            selectedStyleId={selectedDesignStyle}
-                        />
-                        
-                        <ColorGuidePanel onColorSelect={handleColorSelect} />
-                        
-                        <TokenEditor
-                            tokens={tokens}
-                            onChange={setTokens}
-                            isOpen={isTokenEditorOpen}
-                            onToggle={() => setIsTokenEditorOpen(!isTokenEditorOpen)}
-                        />
+                {/* Dashboard Footer */}
+                <footer className="border-t border-white/10 bg-black/10 backdrop-blur-xl mt-16">
+                    <div className="max-w-[1800px] mx-auto px-6 py-6">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-4">
+                                <Sparkles className="w-5 h-5 text-cyan-400" />
+                                <span className="text-gray-300">Powered by AI • Built with React & TypeScript</span>
+                            </div>
+                            <div className="flex items-center gap-6 text-sm text-gray-500">
+                                <span>WCAG AAA Compliant</span>
+                                <span>•</span>
+                                <span>Real-time Validation</span>
+                                <span>•</span>
+                                <span>Modern Design Trends</span>
+                            </div>
+                        </div>
                     </div>
-
-                    {/* Middle Column - Upload & Inspiration */}
-                    <div className="xl:col-span-1 space-y-6">
-                        {activeTab === 'single' ? (
-                            <FileUploader onUpload={runSingleFileValidation} />
-                        ) : (
-                            <ProjectUploader onUpload={runProjectValidation} />
-                        )}
-
-                        <DesignInspirationPanel 
-                            tokens={tokens}
-                            onApplyTrend={handleApplyTrend}
-                            projectType={projectType}
-                        />
-                    </div>
-
-                    {/* Right Column - Results */}
-                    <div className="xl:col-span-2">
-                        {activeTab === 'single' ? (
-                            <ReportViewer 
-                                violations={validationResult.violations} 
-                                css={css}
-                                fixedCSS={validationResult.fixedCSS}
-                                onFixErrors={handleFixSingleFileErrors}
-                            />
-                        ) : (
-                            <ProjectReportViewer 
-                                result={projectResult}
-                                onFixErrors={handleFixProjectErrors}
-                            />
-                        )}
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <footer className="text-center mt-16 pt-8 border-t border-white/10">
-                    <div className="flex justify-center items-center gap-4 mb-4">
-                        <Sparkles className="w-5 h-5 text-cyan-400" />
-                        <span className="text-gray-300">Powered by AI • Built with React & TypeScript</span>
-                        <Sparkles className="w-5 h-5 text-purple-400" />
-                    </div>
-                    <p className="text-sm text-gray-500">
-                        WCAG AAA Compliant • Real-time Validation • Modern Design Trends
-                    </p>
                 </footer>
             </div>
         </div>
