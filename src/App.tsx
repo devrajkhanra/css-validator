@@ -1,27 +1,44 @@
 import { useState } from 'react';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Tabs } from 'lucide-react';
 import TokenEditor from './components/TokenEditor';
 import FileUploader from './components/FileUploader';
+import ProjectUploader from './components/ProjectUploader';
 import ReportViewer from './components/ReportViewer';
+import ProjectReportViewer from './components/ProjectReportViewer';
 import { defaultTokens } from './utils/defaultTokens';
-import type { DesignTokens } from './types/DesignToken';
-import { validateCSS, type Violation, type ValidationResult } from './utils/cssValidator';
+import type { DesignTokens, ProjectValidationResult } from './types/DesignToken';
+import { validateCSS, type ValidationResult } from './utils/cssValidator';
+import { validateProject } from './utils/projectValidator';
 
 function App() {
     const [tokens, setTokens] = useState<DesignTokens>(defaultTokens);
     const [validationResult, setValidationResult] = useState<ValidationResult>({ violations: [], fixedCSS: '' });
+    const [projectResult, setProjectResult] = useState<ProjectValidationResult | undefined>();
     const [css, setCSS] = useState('');
     const [isTokenEditorOpen, setIsTokenEditorOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'single' | 'project'>('single');
 
-    const runValidation = async (code: string) => {
+    const runSingleFileValidation = async (code: string) => {
         setCSS(code);
         const result = await validateCSS(code, tokens);
         setValidationResult(result);
     };
 
-    const handleFixErrors = () => {
+    const runProjectValidation = async (files: { [filePath: string]: string }) => {
+        const result = await validateProject(files, tokens);
+        setProjectResult(result);
+    };
+
+    const handleFixSingleFileErrors = () => {
         if (validationResult.fixedCSS && validationResult.fixedCSS !== css) {
-            runValidation(validationResult.fixedCSS);
+            runSingleFileValidation(validationResult.fixedCSS);
+        }
+    };
+
+    const handleFixProjectErrors = () => {
+        if (projectResult?.fixedFiles) {
+            // In a real implementation, you might want to show a preview or apply fixes
+            console.log('Fixed files:', projectResult.fixedFiles);
         }
     };
 
@@ -45,9 +62,37 @@ function App() {
                         </h1>
                     </div>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Ensure your CSS follows WCAG guidelines and design system standards with intelligent validation, auto-fixing, and real-time feedback
+                        Comprehensive WCAG compliance validation for single files or entire projects with intelligent analysis from parent to child elements
                     </p>
                 </header>
+
+                {/* Tab Navigation */}
+                <div className="flex justify-center mb-8">
+                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl p-2">
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setActiveTab('single')}
+                                className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                                    activeTab === 'single'
+                                        ? 'bg-indigo-600 text-white shadow-lg'
+                                        : 'text-gray-600 hover:bg-white/50'
+                                }`}
+                            >
+                                Single File Validation
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('project')}
+                                className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                                    activeTab === 'project'
+                                        ? 'bg-indigo-600 text-white shadow-lg'
+                                        : 'text-gray-600 hover:bg-white/50'
+                                }`}
+                            >
+                                Project Validation
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Main Content */}
                 <div className="grid lg:grid-cols-2 gap-8 mb-8">
@@ -59,23 +104,35 @@ function App() {
                             isOpen={isTokenEditorOpen}
                             onToggle={() => setIsTokenEditorOpen(!isTokenEditorOpen)}
                         />
-                        <FileUploader onUpload={runValidation} />
+                        
+                        {activeTab === 'single' ? (
+                            <FileUploader onUpload={runSingleFileValidation} />
+                        ) : (
+                            <ProjectUploader onUpload={runProjectValidation} />
+                        )}
                     </div>
 
                     {/* Right Column */}
                     <div className="space-y-6 h-full">
-                        <ReportViewer 
-                            violations={validationResult.violations} 
-                            css={css}
-                            fixedCSS={validationResult.fixedCSS}
-                            onFixErrors={handleFixErrors}
-                        />
+                        {activeTab === 'single' ? (
+                            <ReportViewer 
+                                violations={validationResult.violations} 
+                                css={css}
+                                fixedCSS={validationResult.fixedCSS}
+                                onFixErrors={handleFixSingleFileErrors}
+                            />
+                        ) : (
+                            <ProjectReportViewer 
+                                result={projectResult}
+                                onFixErrors={handleFixProjectErrors}
+                            />
+                        )}
                     </div>
                 </div>
 
                 {/* Footer */}
                 <footer className="text-center text-sm text-gray-500 mt-16">
-                    <p>Built with React, TypeScript & Tailwind CSS • WCAG AA Compliant</p>
+                    <p>Built with React, TypeScript & Tailwind CSS • WCAG AA Compliant • Project-Wide Analysis</p>
                 </footer>
             </div>
         </div>
