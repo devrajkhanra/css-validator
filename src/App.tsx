@@ -5,18 +5,24 @@ import FileUploader from './components/FileUploader';
 import ReportViewer from './components/ReportViewer';
 import { defaultTokens } from './utils/defaultTokens';
 import type { DesignTokens } from './types/DesignToken';
-import { validateCSS, type Violation } from './utils/cssValidator';
+import { validateCSS, type Violation, type ValidationResult } from './utils/cssValidator';
 
 function App() {
     const [tokens, setTokens] = useState<DesignTokens>(defaultTokens);
-    const [violations, setViolations] = useState<Violation[]>([]);
+    const [validationResult, setValidationResult] = useState<ValidationResult>({ violations: [], fixedCSS: '' });
     const [css, setCSS] = useState('');
     const [isTokenEditorOpen, setIsTokenEditorOpen] = useState(false);
 
     const runValidation = async (code: string) => {
         setCSS(code);
         const result = await validateCSS(code, tokens);
-        setViolations(result);
+        setValidationResult(result);
+    };
+
+    const handleFixErrors = () => {
+        if (validationResult.fixedCSS && validationResult.fixedCSS !== css) {
+            runValidation(validationResult.fixedCSS);
+        }
     };
 
     return (
@@ -39,7 +45,7 @@ function App() {
                         </h1>
                     </div>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Ensure your CSS follows your design system guidelines with intelligent validation and real-time feedback
+                        Ensure your CSS follows WCAG guidelines and design system standards with intelligent validation, auto-fixing, and real-time feedback
                     </p>
                 </header>
 
@@ -57,14 +63,19 @@ function App() {
                     </div>
 
                     {/* Right Column */}
-                    <div className="space-y-6">
-                        <ReportViewer violations={violations} css={css} />
+                    <div className="space-y-6 h-full">
+                        <ReportViewer 
+                            violations={validationResult.violations} 
+                            css={css}
+                            fixedCSS={validationResult.fixedCSS}
+                            onFixErrors={handleFixErrors}
+                        />
                     </div>
                 </div>
 
                 {/* Footer */}
                 <footer className="text-center text-sm text-gray-500 mt-16">
-                    <p>Built with React, TypeScript & Tailwind CSS</p>
+                    <p>Built with React, TypeScript & Tailwind CSS • WCAG AA Compliant</p>
                 </footer>
             </div>
         </div>
