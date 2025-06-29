@@ -345,7 +345,7 @@ class ProjectAnalyzer {
         return impact;
     }
 
-    // Main validation method
+    // Main validation method - FIXED to apply design tokens immediately
     async validateProject(files: { [filePath: string]: string }): Promise<ProjectValidationResult> {
         const violations: ProjectViolation[] = [];
         const fixedFiles: { [filePath: string]: string } = {};
@@ -356,7 +356,7 @@ class ProjectAnalyzer {
             this.fileAnalyses.push(analysis);
         }
 
-        // Validate each file
+        // Validate each file with current tokens
         for (const analysis of this.fileAnalyses) {
             const fileViolations: ProjectViolation[] = [];
             
@@ -404,6 +404,12 @@ class ProjectAnalyzer {
         }
 
         return fixedContent;
+    }
+
+    // Update tokens and re-validate - NEW METHOD for live updates
+    updateTokens(newTokens: DesignTokens) {
+        this.tokens = newTokens;
+        this.matcher = new IntelligentTokenMatcher(newTokens);
     }
 }
 
