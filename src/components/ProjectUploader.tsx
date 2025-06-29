@@ -10,6 +10,12 @@ const ProjectUploader: React.FC<Props> = ({ onUpload }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
 
+    const isSupportedFileType = (fileName: string): boolean => {
+        const supportedExtensions = ['.html', '.css', '.js', '.ts', '.jsx', '.tsx', '.json', '.md', '.txt'];
+        const ext = '.' + fileName.split('.').pop()?.toLowerCase();
+        return supportedExtensions.includes(ext);
+    };
+
     const handleFiles = async (fileList: FileList) => {
         setIsUploading(true);
         const files: { [filePath: string]: string } = {};
@@ -27,10 +33,22 @@ const ProjectUploader: React.FC<Props> = ({ onUpload }) => {
         try {
             for (let i = 0; i < fileList.length; i++) {
                 const file = fileList[i];
-                const content = await readFile(file);
                 const filePath = file.webkitRelativePath || file.name;
-                files[filePath] = content;
-                fileNames.push(filePath);
+                
+                // Skip unsupported file types
+                if (!isSupportedFileType(file.name)) {
+                    console.log(`Skipping unsupported file type: ${filePath}`);
+                    continue;
+                }
+
+                try {
+                    const content = await readFile(file);
+                    files[filePath] = content;
+                    fileNames.push(filePath);
+                } catch (fileError) {
+                    console.warn(`Failed to read file ${filePath}:`, fileError);
+                    // Continue with other files instead of failing completely
+                }
             }
 
             setUploadedFiles(fileNames);
