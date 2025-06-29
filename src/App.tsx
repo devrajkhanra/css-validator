@@ -6,6 +6,8 @@ import ProjectUploader from './components/ProjectUploader';
 import ReportViewer from './components/ReportViewer';
 import ProjectReportViewer from './components/ProjectReportViewer';
 import DesignInspirationPanel from './components/DesignInspirationPanel';
+import DesignStyleSelector, { type DesignStyle } from './components/DesignStyleSelector';
+import ColorGuidePanel from './components/ColorGuidePanel';
 import { defaultTokens } from './utils/defaultTokens';
 import type { DesignTokens, ProjectValidationResult } from './types/DesignToken';
 import { validateCSS, type ValidationResult } from './utils/cssValidator';
@@ -18,6 +20,8 @@ function App() {
     const [css, setCSS] = useState('');
     const [isTokenEditorOpen, setIsTokenEditorOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'single' | 'project'>('single');
+    const [selectedDesignStyle, setSelectedDesignStyle] = useState<string | undefined>();
+    const [projectType, setProjectType] = useState<'dashboard' | 'landing' | 'app' | 'portfolio' | 'ecommerce'>('app');
 
     const runSingleFileValidation = async (code: string) => {
         setCSS(code);
@@ -38,7 +42,6 @@ function App() {
 
     const handleFixProjectErrors = () => {
         if (projectResult?.fixedFiles) {
-            // In a real implementation, you might want to show a preview or apply fixes
             console.log('Fixed files:', projectResult.fixedFiles);
         }
     };
@@ -68,6 +71,33 @@ function App() {
         }
     };
 
+    const handleStyleSelect = (style: DesignStyle) => {
+        setSelectedDesignStyle(style.id);
+        
+        // Apply the style's design tokens
+        const styleTokens: Partial<DesignTokens> = {
+            colors: style.colorSchemes.flatMap(scheme => scheme.colors),
+            spacing: style.spacing,
+            borderRadius: style.borderRadius,
+            fontWeights: style.typography.weights
+        };
+        
+        handleApplyTrend(styleTokens);
+    };
+
+    const handleColorSelect = (colors: string[]) => {
+        const updatedTokens = { ...tokens };
+        // Add new colors while keeping existing ones
+        const newColors = colors.filter(color => !updatedTokens.colors.includes(color));
+        updatedTokens.colors = [...updatedTokens.colors, ...newColors];
+        setTokens(updatedTokens);
+        
+        // Re-validate if there's existing content
+        if (css) {
+            runSingleFileValidation(css);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/20">
             {/* Background decoration */}
@@ -91,6 +121,27 @@ function App() {
                         WCAG compliance validation with AI-powered design inspiration from Dribbble & Behance
                     </p>
                 </header>
+
+                {/* Project Type Selector */}
+                <div className="flex justify-center mb-8">
+                    <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl p-2">
+                        <div className="flex gap-2 flex-wrap">
+                            {(['app', 'dashboard', 'landing', 'portfolio', 'ecommerce'] as const).map(type => (
+                                <button
+                                    key={type}
+                                    onClick={() => setProjectType(type)}
+                                    className={`px-4 py-2 rounded-xl font-medium transition-all capitalize ${
+                                        projectType === type
+                                            ? 'bg-indigo-600 text-white shadow-lg'
+                                            : 'text-gray-600 hover:bg-white/50'
+                                    }`}
+                                >
+                                    {type}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
 
                 {/* Tab Navigation */}
                 <div className="flex justify-center mb-8">
@@ -122,31 +173,40 @@ function App() {
 
                 {/* Main Content */}
                 <div className="grid lg:grid-cols-3 gap-8 mb-8">
-                    {/* Left Column */}
+                    {/* Left Column - Design System */}
                     <div className="space-y-6">
+                        <DesignStyleSelector 
+                            onStyleSelect={handleStyleSelect}
+                            selectedStyleId={selectedDesignStyle}
+                        />
+                        
+                        <ColorGuidePanel onColorSelect={handleColorSelect} />
+                        
                         <TokenEditor
                             tokens={tokens}
                             onChange={setTokens}
                             isOpen={isTokenEditorOpen}
                             onToggle={() => setIsTokenEditorOpen(!isTokenEditorOpen)}
                         />
-                        
+                    </div>
+
+                    {/* Middle Column - Upload & Inspiration */}
+                    <div className="space-y-6">
                         {activeTab === 'single' ? (
                             <FileUploader onUpload={runSingleFileValidation} />
                         ) : (
                             <ProjectUploader onUpload={runProjectValidation} />
                         )}
 
-                        {/* Design Inspiration Panel */}
                         <DesignInspirationPanel 
                             tokens={tokens}
                             onApplyTrend={handleApplyTrend}
-                            projectType="app"
+                            projectType={projectType}
                         />
                     </div>
 
-                    {/* Right Column */}
-                    <div className="lg:col-span-2 space-y-6 h-full">
+                    {/* Right Column - Results */}
+                    <div className="space-y-6 h-full">
                         {activeTab === 'single' ? (
                             <ReportViewer 
                                 violations={validationResult.violations} 

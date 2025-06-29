@@ -57,6 +57,33 @@ export class IntelligentTokenMatcher {
         }
     }
 
+    // Determine if a property should use modern CSS units
+    private shouldUseModernUnits(property: string, value: string): boolean {
+        const parsed = this.parseValue(value);
+        
+        // Very small values (borders, outlines) should stay in px
+        if (parsed.number <= 2 && parsed.unit === 'px') {
+            return false;
+        }
+        
+        // Font sizes should generally use rem for accessibility
+        if (property === 'font-size') {
+            return true;
+        }
+        
+        // Spacing properties benefit from rem for scalability
+        if (this.isSpacingProperty(property)) {
+            return parsed.number > 2; // Keep small values in px
+        }
+        
+        // Border radius can use rem for larger values
+        if (property.includes('border-radius')) {
+            return parsed.number > 4;
+        }
+        
+        return false;
+    }
+
     // Find closest spacing token with intelligent matching
     findClosestSpacing(inputValue: string): TokenMatchResult {
         const inputPx = this.normalizeValueToPx(inputValue);
@@ -76,33 +103,40 @@ export class IntelligentTokenMatcher {
             return currDiff < prevDiff ? curr : prev;
         });
 
+        const closestPx = closest.pxValue;
+        
         // Determine the best unit format based on modern standards
         let suggestedValue: string;
         let modernUnit: string;
         let reasoning: string;
 
-        const closestPx = closest.pxValue;
-        
-        // Modern CSS unit preferences:
-        // - rem for most spacing (better accessibility)
-        // - px for small values (1-2px borders, fine details)
-        // - Keep original unit if it's already appropriate
-        
+        // Modern CSS unit preferences based on context
         if (closestPx <= 2) {
-            // Very small values stay in px
+            // Very small values stay in px for precision
             suggestedValue = `${closestPx}px`;
             modernUnit = 'px';
-            reasoning = 'Small values (≤2px) kept in pixels for precision';
+            reasoning = 'Small values (≤2px) kept in pixels for precision (borders, fine details)';
         } else if (inputParsed.unit === 'rem' || inputParsed.unit === 'em') {
             // If input was already in rem/em, suggest rem
             suggestedValue = this.pxToRem(closestPx);
             modernUnit = 'rem';
-            reasoning = 'Converted to rem for better accessibility and scalability';
-        } else {
-            // Default to rem for most spacing values
+            reasoning = 'Converted to rem for better accessibility and user preference scaling';
+        } else if (closestPx >= 16) {
+            // Larger spacing values benefit from rem
             suggestedValue = this.pxToRem(closestPx);
             modernUnit = 'rem';
-            reasoning = 'Converted to rem for better accessibility and scalability';
+            reasoning = 'Larger spacing values use rem for better scalability and accessibility';
+        } else {
+            // Medium values can stay in px or convert to rem based on context
+            if (this.shouldUseModernUnits('spacing', inputValue)) {
+                suggestedValue = this.pxToRem(closestPx);
+                modernUnit = 'rem';
+                reasoning = 'Converted to rem for consistent scaling across devices';
+            } else {
+                suggestedValue = `${closestPx}px`;
+                modernUnit = 'px';
+                reasoning = 'Kept in pixels for precise control';
+            }
         }
 
         const confidence = this.calculateConfidence(inputPx, closestPx);
@@ -141,16 +175,27 @@ export class IntelligentTokenMatcher {
         let modernUnit: string;
         let reasoning: string;
 
-        if (inputParsed.unit === 'px' && closestPx < 16) {
-            // Small font sizes might stay in px but warn about accessibility
+        // Modern typography best practices
+        if (inputParsed.unit === 'px' && closestPx < 14) {
+            // Very small font sizes - warn about accessibility but keep in px if needed
             suggestedValue = `${closestPx}px`;
             modernUnit = 'px';
-            reasoning = 'Small font size - consider accessibility implications (WCAG recommends ≥16px for body text)';
-        } else {
-            // Convert to rem for better accessibility
+            reasoning = 'Small font size - consider accessibility (WCAG recommends ≥16px for body text)';
+        } else if (inputParsed.unit === 'px' && closestPx >= 14) {
+            // Convert larger px font sizes to rem for better accessibility
             suggestedValue = this.pxToRem(closestPx);
             modernUnit = 'rem';
             reasoning = 'Converted to rem for better accessibility and user preference scaling';
+        } else if (inputParsed.unit === 'rem' || inputParsed.unit === 'em') {
+            // Already in relative units - keep in rem
+            suggestedValue = this.pxToRem(closestPx);
+            modernUnit = 'rem';
+            reasoning = 'Maintained in rem for accessibility and scalability';
+        } else {
+            // Default to rem for modern typography
+            suggestedValue = this.pxToRem(closestPx);
+            modernUnit = 'rem';
+            reasoning = 'Converted to rem following modern typography best practices';
         }
 
         const confidence = this.calculateConfidence(inputPx, closestPx);
@@ -166,6 +211,7 @@ export class IntelligentTokenMatcher {
     // Find closest border radius
     findClosestBorderRadius(inputValue: string): TokenMatchResult {
         const inputPx = this.normalizeValueToPx(inputValue);
+        const inputParsed = this.parseValue(inputValue);
         
         const borderRadiusInPx = this.tokens.borderRadius.map(token => ({
             token,
@@ -186,15 +232,19 @@ export class IntelligentTokenMatcher {
         if (closest.originalToken === '9999px') {
             suggestedValue = '9999px';
             modernUnit = 'px';
-            reasoning = 'Large radius for fully rounded elements';
+            reasoning = 'Large radius for fully rounded elements (pills, circles)';
         } else if (closest.pxValue <= 4) {
             suggestedValue = `${closest.pxValue}px`;
             modernUnit = 'px';
-            reasoning = 'Small radius values kept in pixels for precision';
-        } else {
+            reasoning = 'Small radius values kept in pixels for precise control';
+        } else if (inputParsed.unit === 'rem' || this.shouldUseModernUnits('border-radius', inputValue)) {
             suggestedValue = this.pxToRem(closest.pxValue);
             modernUnit = 'rem';
-            reasoning = 'Converted to rem for consistent scaling';
+            reasoning = 'Converted to rem for consistent scaling with typography';
+        } else {
+            suggestedValue = `${closest.pxValue}px`;
+            modernUnit = 'px';
+            reasoning = 'Kept in pixels for precise visual control';
         }
 
         const confidence = this.calculateConfidence(inputPx, closest.pxValue);
@@ -224,7 +274,7 @@ export class IntelligentTokenMatcher {
         return {
             suggestedValue,
             confidence,
-            reasoning: 'Unitless line-height values are preferred for better inheritance',
+            reasoning: 'Unitless line-height values are preferred for better inheritance and accessibility',
             modernUnit: 'unitless'
         };
     }
@@ -246,7 +296,7 @@ export class IntelligentTokenMatcher {
         return {
             suggestedValue,
             confidence,
-            reasoning: 'Standardized font weight values for consistent typography',
+            reasoning: 'Standardized font weight values ensure consistent typography across browsers',
             modernUnit: 'numeric'
         };
     }
@@ -276,7 +326,7 @@ export class IntelligentTokenMatcher {
         return {
             suggestedValue,
             confidence: 0.3,
-            reasoning: 'No exact color match - please review design system colors manually',
+            reasoning: 'No exact color match - please review design system colors manually for brand consistency',
             modernUnit: 'hex'
         };
     }
@@ -298,6 +348,17 @@ export class IntelligentTokenMatcher {
 
     // Main method to find appropriate token based on property type
     findBestMatch(property: string, value: string): TokenMatchResult {
+        // Skip CSS variables, calc(), url(), and other complex values
+        if (value.startsWith('var(') || value.includes('calc(') || value.includes('url(') || 
+            value.includes('linear-gradient') || value.includes('radial-gradient')) {
+            return {
+                suggestedValue: value,
+                confidence: 0.0,
+                reasoning: 'Complex CSS value - skipping intelligent matching',
+                modernUnit: 'complex'
+            };
+        }
+
         // Spacing properties
         if (this.isSpacingProperty(property)) {
             return this.findClosestSpacing(value);
