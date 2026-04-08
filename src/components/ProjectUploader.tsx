@@ -124,7 +124,7 @@ const ProjectUploader: React.FC<Props> = ({ onUpload }) => {
                     <input
                         type="file"
                         multiple
-                        webkitdirectory=""
+                        {...({ webkitdirectory: '' } as any)}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         onChange={handleInputChange}
                     />

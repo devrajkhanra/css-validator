@@ -10,6 +10,7 @@ import {
   Card,
   CardContent,
   IconButton,
+  Grid,
   Avatar,
   Collapse,
   Divider,
@@ -22,6 +23,7 @@ import {
   Smartphone as SmartphoneIcon,
   ShoppingCart as ShoppingCartIcon,
   Business as BusinessIcon,
+  SportsEsports as SportsEsportsIcon,
   Favorite as FavoriteIcon,
   FlashOn as FlashIcon,
   Check as CheckIcon,
@@ -142,17 +144,17 @@ const designStyles: DesignStyle[] = [
         colorSchemes: [
             {
                 name: 'Commerce Green',
-                colors: ['#ffffff', '#f0fdf4', '#22c55e', '#16a34a', '#14532d', '#052e16', '#000000'],
-                description: 'Trust-building green palette for e-commerce'
+                colors: ['#ffffff', '#f0fdf4', '#22c55e', '#16a34a', '#14532d', '#052e16', '#000000', '#000000'],
+                description: 'Trust-building green palette optimized for conversions'
             }
         ],
         typography: {
-            primary: 'Roboto, system-ui, sans-serif',
-            secondary: 'Open Sans, system-ui, sans-serif',
+            primary: 'Inter, system-ui, sans-serif',
+            secondary: 'Roboto, system-ui, sans-serif',
             weights: ['400', '500', '600', '700']
         },
-        spacing: ['8px', '16px', '24px', '32px', '48px', '64px', '80px'],
-        borderRadius: ['4px', '8px', '12px', '16px']
+        spacing: ['8px', '16px', '24px', '32px', '48px', '64px'],
+        borderRadius: ['4px', '8px', '12px']
     },
     {
         id: 'corporate',
@@ -163,21 +165,71 @@ const designStyles: DesignStyle[] = [
         popularity: 7,
         projectTypes: ['dashboard', 'app', 'landing'],
         wcagCompliant: true,
-        characteristics: ['Professional', 'Trustworthy', 'Clean', 'Structured', 'Scalable'],
+        characteristics: ['Professional', 'Trustworthy', 'Clean', 'Scalable', 'Brand focused'],
         colorSchemes: [
             {
                 name: 'Corporate Blue',
                 colors: ['#ffffff', '#eff6ff', '#3b82f6', '#1d4ed8', '#1e40af', '#1e3a8a', '#172554', '#000000'],
-                description: 'Professional blue palette for corporate environments'
+                description: 'Professional blue palette conveying trust and stability'
             }
         ],
         typography: {
-            primary: 'Segoe UI, system-ui, sans-serif',
+            primary: 'Inter, system-ui, sans-serif',
             secondary: 'Roboto, system-ui, sans-serif',
-            weights: ['400', '500', '600']
+            weights: ['400', '500', '600', '700']
         },
-        spacing: ['4px', '8px', '16px', '24px', '32px', '48px', '64px'],
-        borderRadius: ['2px', '4px', '6px', '8px']
+        spacing: ['8px', '16px', '24px', '32px', '48px', '64px'],
+        borderRadius: ['4px', '8px', '12px']
+    },
+    {
+        id: 'creative',
+        name: 'Creative',
+        description: 'Bold and expressive design for creative portfolios and agencies',
+        icon: <PaletteIcon sx={{ width: 20, height: 20 }} />,
+        category: 'Creative',
+        popularity: 7,
+        projectTypes: ['portfolio', 'landing', 'app'],
+        wcagCompliant: true,
+        characteristics: ['Bold colors', 'Expressive', 'Creative freedom', 'Visual impact', 'Artistic'],
+        colorSchemes: [
+            {
+                name: 'Creative Purple',
+                colors: ['#ffffff', '#faf5ff', '#a855f7', '#9333ea', '#7c3aed', '#6d28d9', '#581c87', '#000000'],
+                description: 'Bold purple palette for creative expression'
+            }
+        ],
+        typography: {
+            primary: 'Poppins, system-ui, sans-serif',
+            secondary: 'Inter, system-ui, sans-serif',
+            weights: ['300', '400', '500', '600', '700']
+        },
+        spacing: ['8px', '16px', '24px', '32px', '48px', '64px', '80px'],
+        borderRadius: ['8px', '16px', '24px']
+    },
+    {
+        id: 'gaming',
+        name: 'Gaming',
+        description: 'Dynamic and engaging design for gaming applications and entertainment',
+        icon: <SportsEsportsIcon sx={{ width: 20, height: 20 }} />,
+        category: 'Entertainment',
+        popularity: 6,
+        projectTypes: ['app', 'landing'],
+        wcagCompliant: false,
+        characteristics: ['Dynamic', 'Engaging', 'High energy', 'Interactive', 'Fun'],
+        colorSchemes: [
+            {
+                name: 'Gaming Neon',
+                colors: ['#000000', '#1a1a1a', '#ff0080', '#00ffff', '#ffff00', '#ff4500', '#8000ff', '#ffffff'],
+                description: 'High-energy neon palette for gaming experiences'
+            }
+        ],
+        typography: {
+            primary: 'Orbitron, system-ui, sans-serif',
+            secondary: 'Inter, system-ui, sans-serif',
+            weights: ['400', '500', '600', '700', '900']
+        },
+        spacing: ['4px', '8px', '16px', '24px', '32px', '48px'],
+        borderRadius: ['4px', '8px', '16px']
     }
 ];
 
@@ -293,7 +345,7 @@ const DesignStyleModal: React.FC<DesignStyleModalProps> = ({
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <InfoIcon color="info" />
                     <Box>
-                        <Typography variant="body2" sx={{ color: 'info.contrastText', fontWeight: 'medium' }}>
+                        <Typography variant="body2" fontWeight="medium" sx={{ color: 'info.contrastText' }}>
                             Showing styles optimized for <Box component="span" sx={{ textTransform: 'capitalize', fontWeight: 'bold' }}>{projectType}</Box> projects
                         </Typography>
                         <Typography variant="caption" color="info.main">
@@ -326,143 +378,145 @@ const DesignStyleModal: React.FC<DesignStyleModalProps> = ({
                             sx={{
                                 border: selectedStyleId === style.id ? 2 : 1,
                                 borderColor: selectedStyleId === style.id ? 'primary.main' : 'divider',
-                                bgcolor: selectedStyleId === style.id ? 'primary.light' : 'background.paper',
-                                transition: 'all 0.2s ease-in-out',
-                                '&:hover': {
-                                    boxShadow: 3,
-                                }
-                            }}
-                        >
-                            <CardContent sx={{ p: 3 }}>
-                                <Box
-                                    onClick={() => handleStyleSelect(style)}
-                                    sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' }, p: 1, borderRadius: 1, mb: 2 }}
-                                >
-                                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                            <Avatar sx={{
-                                                bgcolor: selectedStyleId === style.id ? 'primary.main' : 'grey.200',
-                                                color: selectedStyleId === style.id ? 'primary.contrastText' : 'text.primary'
-                                            }}>
-                                                {style.icon}
-                                            </Avatar>
-                                            <Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                                    <Typography variant="h6">
-                                                        {style.name}
+                                    bgcolor: selectedStyleId === style.id ? 'primary.light' : 'background.paper',
+                                    transition: 'all 0.2s ease-in-out',
+                                    '&:hover': {
+                                        boxShadow: 3,
+                                    }
+                                }}
+                            >
+                                <CardContent sx={{ p: 3 }}>
+                                    <Box
+                                        onClick={() => handleStyleSelect(style)}
+                                        sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' }, p: 1, borderRadius: 1, mb: 2 }}
+                                    >
+                                        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                                <Avatar sx={{
+                                                    bgcolor: selectedStyleId === style.id ? 'primary.main' : 'grey.200',
+                                                    color: selectedStyleId === style.id ? 'primary.contrastText' : 'text.primary'
+                                                }}>
+                                                    {style.icon}
+                                                </Avatar>
+                                                <Box>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                                        <Typography variant="h6">
+                                                            {style.name}
+                                                        </Typography>
+                                                        {selectedStyleId === style.id && <CheckIcon color="primary" />}
+                                                        {style.wcagCompliant && (
+                                                            <Chip label="WCAG AA" size="small" color="success" variant="outlined" />
+                                                        )}
+                                                    </Box>
+                                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                                        {style.description}
                                                     </Typography>
-                                                    {selectedStyleId === style.id && <CheckIcon color="primary" />}
-                                                    {style.wcagCompliant && (
-                                                        <Chip label="WCAG AA" size="small" color="success" variant="outlined" />
-                                                    )}
-                                                </Box>
-                                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                                    {style.description}
-                                                </Typography>
-                                                <Box sx={{ display: 'flex', gap: 1 }}>
-                                                    <Chip label={style.category} size="small" variant="outlined" />
-                                                    <Chip label={`${style.popularity}/10 Popular`} size="small" variant="outlined" />
-                                                </Box>
-                                            </Box>
-                                        </Box>
-                                        <ChevronRightIcon
-                                            sx={{
-                                                transform: expandedStyle === style.id ? 'rotate(90deg)' : 'rotate(0deg)',
-                                                transition: 'transform 0.2s',
-                                                color: 'action.disabled'
-                                            }}
-                                        />
-                                    </Box>
-
-                                    <Box sx={{ mb: 2 }}>
-                                        <Typography variant="subtitle2" sx={{ mb: 1 }}>Color Palette</Typography>
-                                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                            {style.colorSchemes[0].colors.slice(0, 8).map((color, index) => (
-                                                <Box
-                                                    key={index}
-                                                    sx={{
-                                                        width: 32,
-                                                        height: 32,
-                                                        bgcolor: color,
-                                                        border: 1,
-                                                        borderColor: 'divider',
-                                                        borderRadius: 0.5,
-                                                    }}
-                                                    title={color}
-                                                />
-                                            ))}
-                                        </Box>
-                                    </Box>
-
-                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                        {style.characteristics.slice(0, 4).map((char, index) => (
-                                            <Chip key={index} label={char} size="small" color="primary" variant="outlined" />
-                                        ))}
-                                        {style.characteristics.length > 4 && (
-                                            <Typography variant="caption" color="text.secondary">
-                                                +{style.characteristics.length - 4} more
-                                            </Typography>
-                                        )}
-                                    </Box>
-                                </Box>
-
-                                <Collapse in={expandedStyle === style.id}>
-                                    <Divider sx={{ my: 2 }} />
-                                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
-                                        <Box>
-                                            <Typography variant="subtitle2" sx={{ mb: 2 }}>Typography</Typography>
-                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                                <Box>
-                                                    <Typography variant="caption" color="text.secondary">Primary:</Typography>
-                                                    <Typography variant="body2" component="code" sx={{ ml: 1, bgcolor: 'background.default', px: 1, py: 0.5, borderRadius: 0.5, fontFamily: 'monospace' }}>
-                                                        {style.typography.primary}
-                                                    </Typography>
-                                                </Box>
-                                                <Box>
-                                                    <Typography variant="caption" color="text.secondary">Weights:</Typography>
-                                                    <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>
-                                                        {style.typography.weights.map((weight, index) => (
-                                                            <Chip key={index} label={weight} size="small" variant="outlined" />
-                                                        ))}
+                                                    <Box sx={{ display: 'flex', gap: 1 }}>
+                                                        <Chip label={style.category} size="small" variant="outlined" />
+                                                        <Chip label={`${style.popularity}/10 Popular`} size="small" variant="outlined" />
                                                     </Box>
                                                 </Box>
                                             </Box>
+                                            <ChevronRightIcon
+                                                sx={{
+                                                    transform: expandedStyle === style.id ? 'rotate(90deg)' : 'rotate(0deg)',
+                                                    transition: 'transform 0.2s',
+                                                    color: 'action.disabled'
+                                                }}
+                                            />
                                         </Box>
 
-                                        <Box>
-                                            <Typography variant="subtitle2" sx={{ mb: 2 }}>Spacing & Radius</Typography>
-                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                                <Box>
-                                                    <Typography variant="caption" color="text.secondary">Spacing Scale:</Typography>
-                                                    <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>
-                                                        {style.spacing.slice(0, 6).map((space, index) => (
-                                                            <Chip key={index} label={space} size="small" variant="outlined" />
-                                                        ))}
-                                                    </Box>
-                                                </Box>
-                                                <Box>
-                                                    <Typography variant="caption" color="text.secondary">Border Radius:</Typography>
-                                                    <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5 }}>
-                                                        {style.borderRadius.map((radius, index) => (
-                                                            <Chip key={index} label={radius} size="small" variant="outlined" />
-                                                        ))}
-                                                    </Box>
-                                                </Box>
+                                        <Box sx={{ mb: 2 }}>
+                                            <Typography variant="subtitle2" sx={{ mb: 1 }}>Color Palette</Typography>
+                                            <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                {style.colorSchemes[0].colors.slice(0, 8).map((color, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        sx={{
+                                                            width: 32,
+                                                            height: 32,
+                                                            bgcolor: color,
+                                                            border: 1,
+                                                            borderColor: 'divider',
+                                                            borderRadius: 0.5,
+                                                        }}
+                                                        title={color}
+                                                    />
+                                                ))}
                                             </Box>
                                         </Box>
-                                    </Box>
 
-                                    <Box sx={{ mt: 3 }}>
-                                        <Typography variant="subtitle2" sx={{ mb: 2 }}>All Characteristics</Typography>
                                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                            {style.characteristics.map((char, index) => (
-                                                <Chip key={index} label={char} size="small" color="primary" />
+                                            {style.characteristics.slice(0, 4).map((char, index) => (
+                                                <Chip key={index} label={char} size="small" color="primary" variant="outlined" />
                                             ))}
+                                            {style.characteristics.length > 4 && (
+                                                <Typography variant="caption" color="text.secondary">
+                                                    +{style.characteristics.length - 4} more
+                                                </Typography>
+                                            )}
                                         </Box>
                                     </Box>
-                                </Collapse>
-                            </CardContent>
-                        </Card>
+
+                                    <Collapse in={expandedStyle === style.id}>
+                                        <Divider sx={{ my: 2 }} />
+                                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
+                                            <Box>
+                                                <Typography variant="subtitle2" sx={{ mb: 2 }}>Typography</Typography>
+                                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                                    <Box>
+                                                        <Typography variant="caption" color="text.secondary">Primary:</Typography>
+                                                        <Typography variant="body2" component="code" sx={{ ml: 1, bgcolor: 'background.default', px: 1, py: 0.5, borderRadius: 0.5, fontFamily: 'monospace' }}>
+                                                            {style.typography.primary}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Box>
+                                                        <Typography variant="caption" color="text.secondary">Weights:</Typography>
+                                                        <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>
+                                                            {style.typography.weights.map((weight, index) => (
+                                                                <Chip key={index} label={weight} size="small" variant="outlined" />
+                                                            ))}
+                                                        </Box>
+                                                    </Box>
+                                                </Box>
+                                            </Box>
+
+                                            <Box>
+                                                <Typography variant="subtitle2" sx={{ mb: 2 }}>Spacing & Radius</Typography>
+                                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                                    <Box>
+                                                        <Typography variant="caption" color="text.secondary">Spacing Scale:</Typography>
+                                                        <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>
+                                                            {style.spacing.slice(0, 6).map((space, index) => (
+                                                                <Chip key={index} label={space} size="small" variant="outlined" />
+                                                            ))}
+                                                        </Box>
+                                                    </Box>
+                                                    <Box>
+                                                        <Typography variant="caption" color="text.secondary">Border Radius:</Typography>
+                                                        <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5 }}>
+                                                            {style.borderRadius.map((radius, index) => (
+                                                                <Chip key={index} label={radius} size="small" variant="outlined" />
+                                                            ))}
+                                                        </Box>
+                                                    </Box>
+                                                </Box>
+                                            </Box>
+
+                                        </Box>
+
+                                        <Box sx={{ mt: 3 }}>
+                                            <Typography variant="subtitle2" sx={{ mb: 2 }}>All Characteristics</Typography>
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                                {style.characteristics.map((char, index) => (
+                                                    <Chip key={index} label={char} size="small" color="primary" />
+                                                ))}
+                                            </Box>
+                                        </Box>
+                                    </Collapse>
+                                </CardContent>
+                            </Card>
+                        </Box>
                     ))}
                 </Box>
 

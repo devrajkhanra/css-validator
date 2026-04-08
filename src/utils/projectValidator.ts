@@ -4,12 +4,10 @@ import { IntelligentTokenMatcher } from './intelligentTokenMatcher';
 
 // HTML/JSX parser for extracting elements and their styles
 class ProjectAnalyzer {
-    private tokens: DesignTokens;
     private fileAnalyses: FileAnalysis[] = [];
     private matcher: IntelligentTokenMatcher;
 
     constructor(tokens: DesignTokens) {
-        this.tokens = tokens;
         this.matcher = new IntelligentTokenMatcher(tokens);
     }
 
@@ -25,7 +23,7 @@ class ProjectAnalyzer {
         
         let match;
         while ((match = tagRegex.exec(content)) !== null) {
-            const [fullMatch, tagName, attributes, innerContent] = match;
+            const [_fullMatch, tagName, attributes, innerContent] = match;
             const classMatch = attributes.match(classRegex);
             const idMatch = attributes.match(idRegex);
             const styleMatch = attributes.match(styleRegex);
@@ -326,7 +324,7 @@ class ProjectAnalyzer {
     }
 
     // Find elements that might be affected by changes to this element
-    private findCascadingImpact(element: ElementAnalysis, fileAnalysis: FileAnalysis): string[] {
+    private findCascadingImpact(element: ElementAnalysis, _fileAnalysis: FileAnalysis): string[] {
         const impact: string[] = [];
         
         // Check for child elements that might inherit styles
@@ -408,7 +406,6 @@ class ProjectAnalyzer {
 
     // Update tokens and re-validate - NEW METHOD for live updates
     updateTokens(newTokens: DesignTokens) {
-        this.tokens = newTokens;
         this.matcher = new IntelligentTokenMatcher(newTokens);
     }
 }

@@ -312,7 +312,7 @@ export class DesignInspirationSystem {
         return intersection.length / Math.max(current.length, trend.length);
     }
 
-    private generateReasoning(trend: DesignTrend, tokens: DesignTokens, projectType: string): string {
+    private generateReasoning(trend: DesignTrend, _tokens: DesignTokens, projectType: string): string {
         const reasons = [];
 
         reasons.push(`${trend.name} is trending with ${trend.popularity}/10 popularity`);
@@ -330,7 +330,7 @@ export class DesignInspirationSystem {
         return reasons.join('. ') + '.';
     }
 
-    private generateImplementation(trend: DesignTrend, currentTokens: DesignTokens): string[] {
+    private generateImplementation(trend: DesignTrend, _currentTokens: DesignTokens): string[] {
         const implementation = [];
 
         implementation.push(`Apply ${trend.name} principles to your design system`);

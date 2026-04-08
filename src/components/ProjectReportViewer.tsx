@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle, AlertTriangle, Download, Wrench, Copy, Check, FileText, ChevronDown, ChevronRight, Info, AlertCircle, XCircle } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Download, Wrench, Copy, Check, FileText, ChevronDown, ChevronRight, Info, XCircle } from 'lucide-react';
 import type { ProjectViolation, ProjectValidationResult } from '../types/DesignToken';
 
 type Props = {
